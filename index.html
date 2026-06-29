@@ -3,9 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@ungap/custom-elements-builtin"></script>
+<script type="module" src="https://unpkg.com/x-frame-bypass"></script>
     <title>MRGL</title>
 </head>
 <body>
-    <h1>Working!</h1>
+    <button onclick="document.getElementById('myModal').showModal()">Open Iframe Modal</button>
+    <button onclick="document.getElementById('myModal2').showModal()">Open Shimano Modal</button>
+
+<!-- Modal Structure -->
+<dialog id="myModal">
+  <div style="text-align: right;">
+    <button onclick="document.getElementById('myModal').close()">Close</button>
+  </div>
+  <iframe id="proxy-frame" width="1300" height="700" frameborder="0"></iframe>
+</dialog>
+
+<dialog id="myModal2">
+  <div style="text-align: right;">
+    <button onclick="document.getElementById('myModal2').close()">Close</button>
+  </div>
+  <iframe src="https://www.shimano.com/en_NZ" width="1300" height="700" frameborder="0"></iframe>
+</dialog>
+
+    <script>
+        const targetUrl = 'https://www.trekbikes.com/nz/en_NZ/'; 
+        // Using a modern reliable public proxy alternative to cors.io
+        const proxyPrefix = 'https://corsproxy.io/?url=';
+        const proxyUrl = proxyPrefix + encodeURIComponent(targetUrl);
+
+        fetch(proxyUrl)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response failed');
+                return response.text();
+            })
+            .then(html => {
+                const iframe = document.getElementById('proxy-frame');
+                
+                // CRITICAL STEP: Inject a <base> tag into the HTML head.
+                // This forces all relative assets (CSS, JS, Images) to load from the original domain
+                // instead of failing or loading from the proxy server.
+                const baseTag = `<base href="${targetUrl}/">`;
+                const modifiedHtml = html.replace('<head>', `<head>${baseTag}`);
+
+                // Load the cleaned text directly as the frame content
+                iframe.srcdoc = modifiedHtml;
+            })
+            .catch(error => {
+                console.error('Error embedding site via proxy:', error);
+            });
+    </script>
 </body>
 </html>

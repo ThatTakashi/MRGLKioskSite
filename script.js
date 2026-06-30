@@ -43,18 +43,15 @@ document.querySelectorAll('.grid-link').forEach(link => {
     };
     
     // 4. Run expansion animation
-    overlay.animate(openKeyframes, animationTiming);
+    const openAnimation = overlay.animate(openKeyframes, animationTiming);
     
-    // 5. Shrink and remove when clicked
-    overlay.addEventListener('click', function() {
-      const closeAnimation = overlay.animate(openKeyframes, {
-        duration: 500,
-        easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
-        direction: 'reverse', 
-        fill: 'forwards'
-      });
-      
-      closeAnimation.onfinish = () => overlay.remove();
-    });
+    // Redirect to the original URL once the animation finishes expanding
+    const destinationUrl = this.getAttribute('href');
+    
+    if (destinationUrl && destinationUrl !== '#') {
+      openAnimation.onfinish = () => {
+        window.location.href = destinationUrl;
+      };
+    }
   });
 });

@@ -1,5 +1,17 @@
 body {
-    background-color: #171717;
+    background-color: black;
+}
+
+.logo {
+    margin-left: auto;
+    margin-right: auto;
+    display: block;
+}
+
+.tagline {
+    color: white;
+    text-align: center;
+    font-family: "Roboto", sans-serif;
 }
 
 .grid-container {

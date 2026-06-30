@@ -55,3 +55,15 @@ document.querySelectorAll('.grid-link').forEach(link => {
     }
   });
 });
+
+window.addEventListener('pageshow', function(event) {
+  // Check if the page is being loaded from the browser history cache
+  if (event.persisted) {
+    // 1. Locate any leftover expanded overlay elements
+    const visibleOverlays = document.querySelectorAll('.expanded-bg');
+    
+    // 2. Safely dismantle them instantly so the user sees the original grid
+    visibleOverlays.forEach(overlay => overlay.remove());
+  }
+});
+

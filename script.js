@@ -8,17 +8,14 @@ document.querySelectorAll('.grid-link').forEach(link => {
     const rect = targetDiv.getBoundingClientRect();
     const currentRadius = window.getComputedStyle(targetDiv).borderRadius;
     
-    // 1. Create the overlay panel
+    // 1. Create the overlay panel layout
     const overlay = document.createElement('div');
     overlay.className = 'expanded-bg';
     overlay.style.backgroundImage = targetDiv.style.backgroundImage;
-    
-    // 2. Clone the inner HTML (the logo) into the new overlay
     overlay.innerHTML = targetDiv.innerHTML;
-    
     document.body.appendChild(overlay);
     
-    // 3. Define animation frames (Start State -> End State)
+    // 2. Define animation keyframes (Start State -> End State)
     const openKeyframes = [
       {
         top: `${rect.top}px`,
@@ -42,28 +39,44 @@ document.querySelectorAll('.grid-link').forEach(link => {
       fill: 'forwards'
     };
     
-    // 4. Run expansion animation
-    const openAnimation = overlay.animate(openKeyframes, animationTiming);
+    // 3. Trigger expansion animation
+    overlay.animate(openKeyframes, animationTiming);
     
-    // Redirect to the original URL once the animation finishes expanding
-    const destinationUrl = this.getAttribute('href');
+    // 4. CRITICAL FOR ANDROID KIOSK: Create a fake history point
+    // This intercepts the physical hardware back button action
+    history.pushState({ isExpandedView: true }, '');
     
-    if (destinationUrl && destinationUrl !== '#') {
-      openAnimation.onfinish = () => {
-        window.location.href = destinationUrl;
-      };
+    // Function to run the closing shrink animation safely
+    function closeOverlayView() {
+      const closeAnimation = overlay.animate(openKeyframes, {
+        duration: 500,
+        easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+        direction: 'reverse', 
+        fill: 'forwards'
+      });
+      
+      closeAnimation.onfinish = () => overlay.remove();
     }
+    
+    // 5. Shrink overlay if user clicks directly on the expanded screen
+    overlay.addEventListener('click', function() {
+      // Step backward in history programmatically, which triggers popstate
+      history.back(); 
+    });
+
+    // 6. Define the function to catch the physical Android back button event
+    function handleAndroidBackButton(event) {
+      closeOverlayView();
+      // Clean up the global event listener immediately to prevent event pollution
+      window.removeEventListener('popstate', handleAndroidBackButton);
+    }
+
+    // Bind listener to intercept back events while this item is active
+    window.addEventListener('popstate', handleAndroidBackButton);
   });
 });
 
-window.addEventListener('pageshow', function(event) {
-  // Check if the page is being loaded from the browser history cache
-  if (event.persisted) {
-    // 1. Locate any leftover expanded overlay elements
-    const visibleOverlays = document.querySelectorAll('.expanded-bg');
-    
-    // 2. Safely dismantle them instantly so the user sees the original grid
-    visibleOverlays.forEach(overlay => overlay.remove());
-  }
+// 7. GLOBAL FALLBACK: Cleans up any hanging nodes if cache acts up on cold wake
+window.addEventListener('pageshow', function() {
+  document.querySelectorAll('.expanded-bg').forEach(overlay => overlay.remove());
 });
-

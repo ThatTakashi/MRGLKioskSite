@@ -24,3 +24,9 @@
     text-align: center;
     height: 250px;
 }
+
+.div3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

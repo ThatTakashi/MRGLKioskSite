@@ -7,7 +7,7 @@ body {
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 8px;
-    width: 50vw;
+    width: 55vw;
     margin-left: auto;
     margin-right: auto;
 }
